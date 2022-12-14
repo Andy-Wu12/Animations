@@ -13,7 +13,9 @@ struct ContentView: View {
 //        ExplicitAnimation()
 //        ControllingAnimationStack()
 //        AnimatingGestures()
-        AnimatingTextGestureExample()
+//        AnimatingTextGestureExample()
+//        ShowHideViewsWithAnimations()
+        CustomTransitionsWithViewModifier()
     }
 }
 
@@ -136,6 +138,74 @@ struct AnimatingTextGestureExample: View {
         )
     }
 }
+
+struct ShowHideViewsWithAnimations: View {
+    @State private var isShowingRed = false
+    
+    var body: some View {
+        VStack {
+            Button("Tap Me") {
+                withAnimation() {
+                    isShowingRed.toggle()
+                }
+            }
+            if isShowingRed {
+                Rectangle()
+                    .fill(.red)
+                    .frame(width: 200, height: 200)
+                    .transition(.asymmetric(insertion: .opacity, removal: .slide))
+            }
+        }
+    }
+}
+
+struct CustomTransitionsWithViewModifier: View {
+    @State private var isShowingRed = false
+    
+    var body: some View {
+        ZStack {
+            Rectangle()
+                .fill(.blue)
+                .frame(width: 200, height: 200)
+
+            if isShowingRed {
+                Rectangle()
+                    .fill(.red)
+                    .frame(width: 200, height: 200)
+                    .transition(.pivot)
+            }
+        }
+        .onTapGesture {
+            withAnimation {
+                isShowingRed.toggle()
+            }
+        }
+    }
+}
+
+// Custom Transition stuff
+struct CornerRotateModifier: ViewModifier {
+    let amount: Double
+    let anchor: UnitPoint
+    
+    func body(content: Content) -> some View {
+        content
+            /// Rotates around Z axis and gives ability to control ANCHOR POINT of rotation
+            /// so that part of the view should be fixed in place as the center of rotation
+            .rotationEffect(.degrees(amount), anchor: anchor)
+            /// Stops view from being drawn outside of it's rectangular space
+            .clipped()
+    }
+}
+
+extension AnyTransition {
+    static var pivot: AnyTransition {
+        .modifier(active: CornerRotateModifier(amount: -90, anchor: .topLeading),
+                  identity: CornerRotateModifier(amount: 0, anchor: .topLeading)
+        )
+    }
+}
+// End of Custom Transition stuff
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
